@@ -51,7 +51,7 @@ def train_model(train_df: pd.DataFrame, test_df: pd.DataFrame,
     # """
     np.random.seed(random_state); random.seed(int(random_state)); torch.manual_seed(int(random_state))
 
-    target_col = '挤压速度'
+    target_col = 'speed'
     drop_cols = []
     feature_names = [c for c in train_df.columns if c not in set(drop_cols + [target_col])]
 
@@ -587,11 +587,12 @@ if __name__ == "__main__":
     if not (os.path.exists(train_csv) and os.path.exists(test_csv)):
         raise FileNotFoundError(f"预划分的 split 文件不存在: {split_dir}")
 
-    feature=["生产批产量","加工长度","短棒长度","产品米重","生产批产量_全局标准化偏差","短棒长度_全局标准化偏差",
-             "短棒长度_低","型材表面处理方式_未知","短棒长度_高","模具类型_1.0","铝棒上机温度",
-             "型材表面处理方式_喷涂","型材表面处理方式_光身","铝棒上机温度_全局标准化偏差","模具类型_16.0","生产批产量_高",
-             "合金牌号","型材表面处理方式_氧化","模具类型_6.0","短棒长度_中","生产批产量_中","铝棒上机温度_低","铝棒上机温度_高",
-             "模具类型_2.0","一出几","型材表面处理方式_氟碳","生产批产量_低","铝棒上机温度_中","模具上机温度","模具直径"
+    feature = [
+    "Production", "PL", "BL", "MW", "DevProduction", "DevBL",
+    "BLLow", "OtherST", "BLHigh", "Mould1", "BTemp",
+    "SpST", "SmST", "DevBTemp", "Mould16", "ProductionHigh",
+    "Alloy", "OxST", "Mould6", "BLMed", "ProductionMed", "BTempLow", "BTempHigh",
+    "Mould2", "Num", "FlST", "ProductionLow", "BTempMed", "MTemp", "Diameter"
     ]
     # 只读一次完整数据
     train_df_all = pd.read_csv(train_csv)
@@ -603,8 +604,8 @@ if __name__ == "__main__":
     # 遍历 n 从 2 到 len(feature)，逐次训练与评估
     for n in range(20, len(feature) + 1):
         selected_feature = feature[:n]
-        train_df = train_df_all[selected_feature + ['挤压速度']]
-        test_df = test_df_all[selected_feature + ['挤压速度']]
+        train_df = train_df_all[selected_feature + ['speed']]
+        test_df = test_df_all[selected_feature + ['speed']]
 
         print(f"train by n={n},")
         metrics, model, scalers = train_model(train_df, test_df, random_state=43, verbose=True)
