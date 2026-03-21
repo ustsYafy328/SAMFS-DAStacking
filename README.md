@@ -1,4 +1,4 @@
-#SAMFS&DAStacking Project
+# SAMFS&DAStacking Project
 A multi-view learning framework featuring automated feature selection and a stacking backbone.
 
 ## Project Structure
