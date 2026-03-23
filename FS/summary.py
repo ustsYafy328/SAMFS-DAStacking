@@ -13,18 +13,15 @@ import xgboost as xgb
 data_path = "data/alldata251124.xlsx"
 data = pd.read_excel(data_path)
 
-cols_to_drop = ["生产批号", "模具编码", "生产批产量", "加工长度", "短棒长度", 
-                "挤压出口温度", "进棒区设定温度", "出棒区设定温度", "模具上机温度"]
+cols_to_drop = []
 data = data.drop(columns=[c for c in cols_to_drop if c in data.columns])
 
 data = data.drop_duplicates().dropna(how='all')
-X = data.drop(columns=["挤压速度"])
-y = data["挤压速度"]
+X = data.drop(columns=["speed"])
+y = data["speed"]
 
 # Group features
-known_continuous = ["产品米重", "模具直径", "模具类型", "进棒区设定温度", "出棒区设定温度", 
-                    "淬火出口温度", "型材截面面积", "一出几", "挤压比", "一出几难度系数", 
-                    "表面及模具类型难度系数", "修正系数和", "型材难度系数", "难度系数总合"]
+known_continuous = ["MW","Production","PL","Num","Diameter","BL","MTemp","BTemp"]
 continuous_features = [c for c in known_continuous if c in X.columns]
 binary_features = [c for c in X.columns if c not in continuous_features and set(X[c].dropna().unique()).issubset({0,1})]
 numeric_features = continuous_features + binary_features
@@ -47,8 +44,8 @@ f_scores, f_pvals = f_regression(X_cont, y.fillna(y.mean()))
 f_df = pd.DataFrame({'feature': X_cont.columns, 'f_score': np.abs(f_scores), 'f_pvalue': f_pvals})
 
 # 4. Covariance
-cov_base = data[numeric_features + ["挤压速度"]].copy()
-cov_series = cov_base.cov(numeric_only=True).get("挤压速度", pd.Series(dtype=float)).drop(labels=["挤压速度"], errors='ignore')
+cov_base = data[numeric_features + ["speed"]].copy()
+cov_series = cov_base.cov(numeric_only=True).get("speed", pd.Series(dtype=float)).drop(labels=["speed"], errors='ignore')
 cov_df = pd.DataFrame({'feature': cov_series.index, 'covariance': cov_series.abs().values})
 
 # 5. Tree-based and Linear Models
@@ -117,7 +114,7 @@ combined_df['topsis_score'] = dist_neg / den
 combined_df['topsis_rank'] = combined_df['topsis_score'].rank(ascending=False, method='min').astype('Int64')
 
 # Save outputs
-os.makedirs("汇总结果", exist_ok=True)
-combined_df.to_csv("汇总结果/feature_stats_combined.csv", index=False)
-combined_df[['feature','topsis_score','topsis_rank']].to_csv("汇总结果/feature_ranking_topsis.csv", index=False)
+os.makedirs("results", exist_ok=True)
+combined_df.to_csv("results/feature_stats_combined.csv", index=False)
+combined_df[['feature','topsis_score','topsis_rank']].to_csv("results/feature_ranking_topsis.csv", index=False)
 print("Files generated: feature_stats_combined.csv & feature_ranking_topsis.csv")
